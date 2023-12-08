@@ -265,7 +265,7 @@ func getHandType(handTypeConfig []map[int]int, hand HandData, wildCard string) i
 		// we take one set from our largest combination
 		handType[largest + wildCardCount] = 1
 		handType[largest] -= 1
-		if handType[largest] == 0 {
+		if handType[largest] <= 0 {
 			delete(handType, largest)
 		}
 	}
