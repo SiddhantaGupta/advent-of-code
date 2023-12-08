@@ -1,3 +1,3 @@
-# Advent of Code 2023
+# Advent of Code
 
-This repository contains solutions to problems from Advent of Code 2023.
+This repository contains solutions to problems from Advent of Code.
