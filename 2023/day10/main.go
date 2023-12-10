@@ -4,6 +4,7 @@ import (
 	"errors"
 	"log"
 	"os"
+	"reflect"
 	"strings"
 )
 
@@ -32,7 +33,6 @@ func main() {
 
 	partOneResult := partOne(filename)
 	log.Printf("Part One: %v", partOneResult)
-	// correct ans: 6897, pipe: |
 
 	// partTwoResult := partTwo(filename)
 	// log.Printf("Part Two: %v", partTwoResult)
@@ -114,7 +114,7 @@ func checkLoopback(pipeMap [][]string, startingCoords []int, currentCoords []int
 		return true, stepCount
 	} else if isCoordsSimilar(startingCoords, currentCoords) &&
 		stepCount > 1 &&
-		isPipeJoinedBackwards(pipeMap, startingCoords, prevCoords) {
+		!isPipeJoinedBackwards(pipeMap, startingCoords, prevCoords) {
 		return false, stepCount
 	}
 
@@ -130,7 +130,7 @@ func checkLoopback(pipeMap [][]string, startingCoords []int, currentCoords []int
 	isLoopbackPossible := false
 	currentPipeType, _ := getPipe(pipeMap, currentCoords)
 	for _, d := range pipeDirections[currentPipeType] {
-		nextCoords, nextCoordsErr := getCoordsForDirection(currentCoords, d)
+		nextCoords, nextCoordsErr := getCoordsForDirection(currentCoords, d, pipeMap)
 		if nextCoordsErr != nil {
 			continue
 		}
@@ -159,8 +159,8 @@ func isPipeJoinedBackwards(pipeMap [][]string, pipeCoords, backPipeCoords []int)
 	if err != nil {
 		return false
 	}
-	pipeDirOneCoords, _ := getCoordsForDirection(pipeCoords, pipeDirections[pipeType][0])
-	pipeDirTwoCoords, _ := getCoordsForDirection(pipeCoords, pipeDirections[pipeType][1])
+	pipeDirOneCoords, _ := getCoordsForDirection(pipeCoords, pipeDirections[pipeType][0], pipeMap)
+	pipeDirTwoCoords, _ := getCoordsForDirection(pipeCoords, pipeDirections[pipeType][1], pipeMap)
 	if isCoordsSimilar(backPipeCoords, pipeDirOneCoords) || isCoordsSimilar(backPipeCoords, pipeDirTwoCoords) {
 		return true
 	}
@@ -168,21 +168,19 @@ func isPipeJoinedBackwards(pipeMap [][]string, pipeCoords, backPipeCoords []int)
 	return false
 }
 
-func getCoordsForDirection(coords []int, direction string) ([]int, error) {
+func getCoordsForDirection(coords []int, direction string, pipeMap [][]string) ([]int, error) {
 	nextX := coords[0] + directions[direction][0]
 	nextY := coords[1] + directions[direction][1]
 	if nextX < 0 || nextY < 0 {
+		return nil, errors.New("Coords not possible")
+	} else if nextX > len(pipeMap)-1 || nextY > len(pipeMap[nextX])-1 {
 		return nil, errors.New("Coords not possible")
 	}
 	return []int{nextX, nextY}, nil
 }
 
 func isCoordsSimilar(coords1 []int, coords2 []int) bool {
-	// return reflect.DeepEqual(coords1, coords2)
-	if len(coords1) < 2 || len(coords2) < 2 {
-		return false
-	}
-	return coords1[0] == coords2[0] && coords1[1] == coords2[1]
+	return reflect.DeepEqual(coords1, coords2)
 }
 
 func getPipe(pipeMap [][]string, coords []int) (string, error) {
