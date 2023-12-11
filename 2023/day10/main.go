@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"log"
+	"math"
 	"os"
 	"reflect"
 	"strings"
@@ -34,8 +35,8 @@ func main() {
 	partOneResult := partOne(filename)
 	log.Printf("Part One: %v", partOneResult)
 
-	// partTwoResult := partTwo(filename)
-	// log.Printf("Part Two: %v", partTwoResult)
+	partTwoResult := partTwo(filename)
+	log.Printf("Part Two: %v", partTwoResult)
 }
 
 func partOne(filename string) int {
@@ -48,9 +49,81 @@ func partOne(filename string) int {
 		return -1
 	}
 
-	log.Println(sPipeType, stepCount)
-
 	return stepCount / 2
+}
+
+func partTwo(filename string) float64 {
+
+	pipeMap := parsePipeMap(filename)
+	sIndex := findSIndex(pipeMap)
+	sPipeType, _ := findSPipeType(pipeMap, sIndex)
+
+	if sPipeType == "" {
+		return -1
+	}
+
+	pipeMap[sIndex[0]][sIndex[1]] = sPipeType
+
+	perimeterCoords := getPerimeterCoords(pipeMap, sIndex)
+
+	area := areaByShoelaceFormula(perimeterCoords)
+
+	perimeterCoordsCount := len(perimeterCoords)
+	internalPoints := getInternalPointsCountByPicksTheorem(area, float64(perimeterCoordsCount))
+
+	return internalPoints
+}
+
+func areaByShoelaceFormula(listOfPoints [][]int) float64 {
+	listOfPoints = append(listOfPoints, listOfPoints[0])
+	downMultipleList := []int{}
+	for i := 0; i < len(listOfPoints)-1; i++ {
+		multiple := listOfPoints[i][0] * listOfPoints[i+1][1]
+		downMultipleList = append(downMultipleList, multiple)
+	}
+
+	upMultipleList := []int{}
+	for i := 0; i < len(listOfPoints)-1; i++ {
+		multiple := listOfPoints[i+1][0] * listOfPoints[i][1]
+		upMultipleList = append(upMultipleList, multiple)
+	}
+
+	downSum := 0
+	upSum := 0
+	for i := 0; i < len(downMultipleList); i++ {
+		downSum += downMultipleList[i]
+		upSum += upMultipleList[i]
+	}
+
+	return math.Abs(float64(downSum)-float64(upSum)) / 2
+}
+
+func getInternalPointsCountByPicksTheorem(a float64, b float64) float64 {
+	return (a + 1) - (b / 2)
+}
+
+func getPerimeterCoords(pipeMap [][]string, startCoords []int) [][]int {
+	prevCoords := startCoords
+	currentCoords := startCoords
+	perimeterCoords := [][]int{}
+	counter := 0
+	for {
+		pipeType := pipeMap[currentCoords[0]][currentCoords[1]]
+		if isCoordsSimilar(currentCoords, startCoords) && counter > 0 {
+			break
+		}
+		for _, d := range pipeDirections[pipeType] {
+			nextCoords, _ := getCoordsForDirection(currentCoords, d, pipeMap)
+			if !isCoordsSimilar(prevCoords, nextCoords) {
+				perimeterCoords = append(perimeterCoords, currentCoords)
+				prevCoords = currentCoords
+				currentCoords = nextCoords
+				break
+			}
+		}
+		counter++
+	}
+	return perimeterCoords
 }
 
 func parsePipeMap(pipeMapFilename string) [][]string {
