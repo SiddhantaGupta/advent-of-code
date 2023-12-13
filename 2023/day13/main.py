@@ -1,18 +1,61 @@
 #!/usr/bin/python3
 import os
-from pprint import pprint
 
-dataArr = None
-with open("input", "r") as file:
-    d = file.read()
-    dataArr = d.split(os.linesep + os.linesep)
+
+def main():
+    input = None
+    with open("input", "r") as file:
+        data = file.read()
+        input = data.split(os.linesep + os.linesep)
+
+    print(partOne(input))
+    print(partTwo(input))
+    return 0
+
+
+def partOne(input):
+    hs = 0
+    vs = 0
+    for item in input:
+        hm = getHorizontalMatrix(item)
+        vm = getVerticalMatrix(item)
+        hr = findLineOfReflextion(hm, 0)
+        vr = findLineOfReflextion(vm, 0)
+
+        if hr != (-1, -1):
+            hs += (hr[0] + 1) * 100
+
+        if vr != (-1, -1):
+            vs += vr[0] + 1
+
+    return hs + vs
+
+
+def partTwo(input):
+    hs = 0
+    vs = 0
+    for item in input:
+        hm = getHorizontalMatrix(item)
+        vm = getVerticalMatrix(item)
+        hr = findLineOfReflextion(hm, 1)
+        vr = findLineOfReflextion(vm, 1)
+
+        if hr != (-1, -1):
+            hs += (hr[0] + 1) * 100
+
+        if vr != (-1, -1):
+            vs += vr[0] + 1
+
+    return hs + vs
+
 
 def getHorizontalMatrix(s):
     return s.split("\n")
 
+
 def getVerticalMatrix(s):
     return transposeMatrix(getHorizontalMatrix(s))
-    
+
 
 def transposeMatrix(m):
     mx = [""] * len(m[0])
@@ -28,18 +71,9 @@ def findLineOfReflextion(m, smudge):
         reflection = checkReflection(m, i, smudge)
         if reflection != (-1, -1):
             return reflection
-        
+
     return (-1, -1)
 
-def smudgyReflection(a, b):
-    for i in range(0, len(a)):
-        ax = list(a)
-        ax[i] = "#" if ax[i] == "." else "."
-        ax = "".join(ax)
-        if ax == b:
-            return True
-
-    return False
 
 def checkReflection(m, i, smudge):
     l, r = i, i+1
@@ -47,7 +81,7 @@ def checkReflection(m, i, smudge):
     while True:
         if l < 0 or r > len(m) - 1:
             if smudge > 0:
-                return(-1, -1)
+                return (-1, -1)
             else:
                 return (i, i+1)
         if m[l] != m[r]:
@@ -60,23 +94,17 @@ def checkReflection(m, i, smudge):
         l -= diff
         r += diff
 
-def main(input):
-    hs = 0
-    vs = 0
-    for data in input:
-        hm = getHorizontalMatrix(data)
-        vm = getVerticalMatrix(data)
-        hr = findLineOfReflextion(hm, 1)
-        vr = findLineOfReflextion(vm, 1)
 
-        if hr != (-1, -1):
-            hs += (hr[0] + 1) * 100
+def smudgyReflection(a, b):
+    for i in range(0, len(a)):
+        ax = list(a)
+        ax[i] = "#" if ax[i] == "." else "."
+        ax = "".join(ax)
+        if ax == b:
+            return True
 
-        if vr != (-1, -1):
-            vs += vr[0] + 1
+    return False
 
-    print(hs + vs)
-    return 0
 
 if __name__ == "__main__":
-    main(dataArr)
+    main()
