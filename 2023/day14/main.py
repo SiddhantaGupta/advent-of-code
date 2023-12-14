@@ -5,7 +5,7 @@ from pprint import pprint
 
 def main():
     data = None
-    with open("example", "r") as file:
+    with open("input", "r") as file:
         data = file.read()
 
     input = data.split(os.linesep)
@@ -18,7 +18,7 @@ def main():
 
 
 def partOne(input):
-    tm = transposeMatrix(input)
+    tm = transposeMatrixRight(input)
     sm = shiftRocks(tm)
     w = calculateTotalRockWeight(sm)
     return w
@@ -29,17 +29,17 @@ def calculateTotalRockWeight(m):
     for i in range(0, len(m)):
         for j in range(0, len(m[i])):
             if m[i][j] == "O":
-                rockWeightSum += 1 * (len(m[i]) - j)
+                rockWeightSum += 1 * j + 1
 
     return rockWeightSum
 
 
 def shiftRocks(m):
     for i in range(0, len(m)):
-        for j in range(0, len(m[i])):
+        for j in range(len(m[i]) - 1, -1, -1):
             if m[i][j] == "O":
                 eidx = getLastEmptyIndex(m[i], j)
-                if eidx < j:
+                if eidx > j:
                     m[i][eidx] = m[i][j]
                     m[i][j] = "."
 
@@ -47,10 +47,11 @@ def shiftRocks(m):
 
 
 def getLastEmptyIndex(r, j):
-    if j == 0:
-        return 0
     idx = j
-    for i in range(j-1, -1, -1):
+    if j == len(r) - 1:
+        return idx
+
+    for i in range(j+1, len(r)):
         if r[i] in "#O":
             break
         if r[i] == ".":
@@ -59,14 +60,21 @@ def getLastEmptyIndex(r, j):
     return idx
 
 
-def transposeMatrix(m):
+def transposeMatrixLeft(m):
     # using the below line copies ref and makes every iteration the same
     # mx = [[None] * len(m)] * len(m[0])
     mx = [[None for j in m] for i in m[0]]
     for i in range(0, len(m)):
         for j in range(0, len(m[i])):
             mx[j][i] = m[i][j]
+    return mx
 
+
+def transposeMatrixRight(m):
+    mx = [[None for j in m] for i in m[0]]
+    for i in range(0, len(m)):
+        for j in range(0, len(m[i])):
+            mx[j][len(m[0]) - 1 - i] = m[i][j]
     return mx
 
 
