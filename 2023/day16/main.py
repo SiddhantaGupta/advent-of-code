@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 import os
-from pprint import pprint
 from copy import deepcopy
+import time
 
 directions = {
     "U": [-1, 0],
@@ -20,8 +20,14 @@ def main():
     for i in range(len(input)):
         input[i] = list(input[i])
 
+    start_time = time.time()
     print("Part One: ", partOne(input))
+    print("--- %s seconds ---" % (time.time() - start_time))
+
+    start_time = time.time()
     print("Part Two: ", partTwo(input))
+    print("--- %s seconds ---" % (time.time() - start_time))
+
     return 0
 
 
@@ -30,26 +36,10 @@ def partOne(input):
 
 
 def partTwo(input):
-    startPosList = []
-    for i in range(len(input)):
-        for j in range(len(input[i])):
-            if (i != 0 and i != len(input) - 1) and (j != 0 and j != len(input[j]) - 1):
-                continue
-
-            if i == 0:
-                startPosList.append((i, j, "D"))
-            elif i == len(input) - 1:
-                startPosList.append((i, j, "U"))
-
-            if j == 0:
-                startPosList.append((i, j, "R"))
-            elif j == len(input[i]) - 1:
-                startPosList.append((i, j, "L"))
-
+    startPosList = getStartPoints(input)
     energizedCells = []
     for startPos in startPosList:
         energizedCells.append(computeEnergizedCells(input, startPos))
-
     return max(energizedCells)
 
 
@@ -126,7 +116,6 @@ def computeEnergizedCells(m, sb):
                         beamHist.append(deepcopy(newBeam2))
 
         indexToDel.sort()
-
         for i in range(len(indexToDel) - 1, -1, -1):
             del beams[indexToDel[i]]
 
@@ -140,6 +129,26 @@ def nextBeam(beam, d=""):
 
 def getTile(m, b):
     return m[b[0]][b[1]]
+
+
+def getStartPoints(matrix):
+    startPoints = []
+    for i in range(len(matrix)):
+        for j in range(len(matrix[i])):
+            if (i != 0 and i != len(matrix) - 1) and (j != 0 and j != len(matrix[j]) - 1):
+                continue
+
+            if i == 0:
+                startPoints.append((i, j, "D"))
+            elif i == len(matrix) - 1:
+                startPoints.append((i, j, "U"))
+
+            if j == 0:
+                startPoints.append((i, j, "R"))
+            elif j == len(matrix[i]) - 1:
+                startPoints.append((i, j, "L"))
+
+    return startPoints
 
 
 if __name__ == "__main__":
