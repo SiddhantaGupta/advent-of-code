@@ -11,12 +11,12 @@ directions = {
     "R": [0, 1]
 }
 
-dir = ["R", "D", "L", "U"]
+dirIndex = ["R", "D", "L", "U"]
 
 
 def main():
     data = None
-    with open("input", "r") as file:
+    with open("example", "r") as file:
         data = file.read()
 
     input = data.split(os.linesep)
@@ -28,10 +28,6 @@ def main():
     start_time = time.time()
     print("Part Two: ", partTwo(input))
     print("--- %s seconds ---" % (time.time() - start_time))
-
-    # start_time = time.time()
-    # print("Part Two Old: ", partTwoOld(input))
-    # print("--- %s seconds ---" % (time.time() - start_time))
 
     return 0
 
@@ -61,28 +57,23 @@ def partTwo(input):
     shoeLaceDiggedCoords = [(0, 0)]
     shoeLaceUpSum = 0
     shoeLaceDownSum = 0
-
     count = 0
+
     for r in input:
         d, s, c = r.split(" ")
         s = int(c.replace("(", "").replace(")", "").replace("#", "")[:-1], 16)
-        d = dir[int(c.replace(")", "")[-1])]
+        d = dirIndex[int(c.replace(")", "")[-1])]
 
         for i in range(s):
             count += 1
             coords = nextCoords(coords, d)
             shoeLaceDiggedCoords.append((coords[0], coords[1]))
-            downMultiple = shoeLaceDiggedCoords[0][0] * \
-                shoeLaceDiggedCoords[1][1]
-            upMultiple = shoeLaceDiggedCoords[1][0] * \
-                shoeLaceDiggedCoords[0][1]
-            shoeLaceDownSum += downMultiple
-            shoeLaceUpSum += upMultiple
+            shoeLaceDownSum += shoeLaceDiggedCoords[0][0] * shoeLaceDiggedCoords[1][1]
+            shoeLaceUpSum += shoeLaceDiggedCoords[1][0] * shoeLaceDiggedCoords[0][1]
             shoeLaceDiggedCoords.pop(0)
 
     area = abs(shoeLaceDownSum - shoeLaceUpSum) / 2
-    internalPointsCount = getInternalPointsCountByPicksTheorem(
-        area, count)
+    internalPointsCount = getInternalPointsCountByPicksTheorem(area, count)
 
     return math.floor(count + internalPointsCount)
 
