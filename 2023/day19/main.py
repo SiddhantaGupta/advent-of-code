@@ -1,11 +1,11 @@
 #!/usr/bin/python3
 import os
 import time
-
+from copy import deepcopy
 
 def main():
     data = None
-    with open("input", "r") as file:
+    with open("example", "r") as file:
         data = file.read()
 
     workflowStr, partStr = data.split(os.linesep + os.linesep)
@@ -34,9 +34,9 @@ def main():
     print("Part One: ", partOne(workflowMap, partList))
     print("--- %s seconds ---" % (time.time() - start_time))
 
-    # start_time = time.time()
-    # print("Part Two: ", partTwo(workflowMap))
-    # print("--- %s seconds ---" % (time.time() - start_time))
+    start_time = time.time()
+    print("Part Two: ", partTwo(workflowMap))
+    print("--- %s seconds ---" % (time.time() - start_time))
 
     return 0
 
@@ -53,7 +53,81 @@ def partOne(workflowMap, partList):
 
 
 def partTwo(workflowMap):
-    return
+    acceptedPaths = getAcceptedPaths(workflowMap, "in", [], [])
+
+    aps = []
+    for ap in acceptedPaths:
+        maxs = {
+            "x": 4000,
+            "m": 4000,
+            "a": 4000,
+            "s": 4000
+        }
+        mins = {
+            "x": 0,
+            "m": 0,
+            "a": 0,
+            "s": 0
+        }
+        for r in ap:
+            if ":" in r:
+                """ Explaination for off by 1:
+                while subtracting min is exclusive and max is inclusive in math
+                so to make min inclusive we subtract 1
+                and to make max exclusive we subtract 1
+                """
+                if ">=" in r:
+                    mins[r[0]] = max(mins[r[0]], int(r.split(":")[0].split(">=")[1]) - 1)
+                elif "<=" in r:
+                    maxs[r[0]] = min(maxs[r[0]], int(r.split(":")[0].split("<=")[1]))
+                elif ">" in r:
+                    mins[r[0]] = max(mins[r[0]], int(r.split(":")[0].split(">")[1]))
+                elif "<" in r:
+                    maxs[r[0]] = min(maxs[r[0]], int(r.split(":")[0].split("<")[1]) - 1)
+
+        p = {}
+        for k in maxs.keys():
+            p[k] = maxs[k] - mins[k]
+
+        aps.append(p)
+
+    t = 0
+    for ps in aps:
+        m = 1
+        for v in ps.values():
+            m *= v
+        t += m
+    
+    return t
+
+
+def getAcceptedPaths(wfm, wf, path, paths):
+    for i, rule in enumerate(wfm[wf]):
+        npath = deepcopy(path)
+
+        for j in range(i):
+            if wfm[wf][j][1] == ">":
+                npath.append(wfm[wf][j].replace(">", "<="))
+            else:
+                npath.append(wfm[wf][j].replace("<", ">="))
+
+        npath.append((rule))
+
+        nextWf = getRuleNextWf(rule)
+        if nextWf == "A":
+            paths.append(npath)
+            continue
+        elif nextWf == "R":
+            continue
+
+        getAcceptedPaths(wfm, getRuleNextWf(rule), npath, paths)
+
+    return paths
+
+def getRuleNextWf(rule):
+    if ":" in rule:
+        return rule.split(":")[1]
+    return rule
 
 
 def getPartCategory(workflowMap, part, entryPoint): # Returns A or R
