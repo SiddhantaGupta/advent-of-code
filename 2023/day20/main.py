@@ -1,8 +1,8 @@
 #!/usr/bin/python3
 import os
 import time
+from math import lcm
 from copy import deepcopy
-from pprint import pprint
 
 moduleTypes = {
     "broadcaster": 1,
@@ -70,9 +70,9 @@ def main():
     print("Part One: ", partOne(m))
     print("--- %s seconds ---" % (time.time() - start_time))
 
-    # start_time = time.time()
-    # print("Part Two: ", partTwo(m))
-    # print("--- %s seconds ---" % (time.time() - start_time))
+    start_time = time.time()
+    print("Part Two: ", partTwo(m))
+    print("--- %s seconds ---" % (time.time() - start_time))
 
     return 0
 
@@ -88,6 +88,25 @@ def partOne(input):
         hpcs += highPulseCount
 
     return lpcs * hpcs
+
+
+def partTwo(input):
+    """ for part 2 I took hint for LCM solution from reddit:
+    The final module is a conjunction and will only send a low beam to the end module
+    when all input's last pulse was a high pulse.
+    every input cycles to send a high pulse at an interval and the LCM of all the cycles
+    is when the condition will meet."""
+
+    buttonPressCount = 0
+    cycleCount = []
+
+    while True:
+        buttonPressCount += 1
+        input, cycleCount = broadcast2(input, cycleCount, buttonPressCount)
+        if len(cycleCount) == len(input["rs"]["inputs"]):
+            break
+
+    return lcm(*cycleCount)
 
 
 def broadcast(modules):
@@ -142,6 +161,57 @@ def broadcast(modules):
                     pulses.append((dest, output, pulseTypes["high"]))
 
     return [highPulseCount, lowPulseCount, m]
+
+
+def broadcast2(modules, cycleCount, buttonPressCount):
+    m = deepcopy(modules)
+    pulses = []
+
+    for output in m["broadcaster"]["outputs"]:
+        pulses.append(("broadcast", output, pulseTypes["low"]))
+
+
+    while True:
+        if len(pulses) <= 0:
+            break
+
+        src, dest, pType = pulses.pop(0)
+
+        if dest == "rs" and pType == pulseTypes["high"]:
+            cycleCount.append(buttonPressCount)
+
+        if dest not in m:
+            continue
+        elif m[dest]["type"] == moduleTypes["flipFlop"]:
+            if pType == pulseTypes["low"]:
+                m[dest]["state"] = toggleFlipFlop(m[dest])
+                if m[dest]["state"] == flipFlopStates["on"]:
+                    # send hight pulse
+                    for output in m[dest]["outputs"]:
+                        pulses.append((dest, output, pulseTypes["high"]))
+                elif m[dest]["state"] == flipFlopStates["off"]:
+                    # send low pulse
+                    for output in m[dest]["outputs"]:
+                        pulses.append((dest, output, pulseTypes["low"]))
+
+        elif m[dest]["type"] == moduleTypes["conjunction"]:
+            m[dest]["inputs"][src] = pType
+            allHigh = True
+            for i in m[dest]["inputs"]:
+                if m[dest]["inputs"][i] == pulseTypes["low"]:
+                    allHigh = False
+                    break
+            
+            if allHigh:
+                # send low pulse
+                for output in m[dest]["outputs"]:
+                    pulses.append((dest, output, pulseTypes["low"]))
+            else:
+                # send high pulse
+                for output in m[dest]["outputs"]:
+                    pulses.append((dest, output, pulseTypes["high"]))
+
+    return [m, cycleCount]
 
 
 def toggleFlipFlop(flipFlop):
